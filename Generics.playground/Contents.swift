@@ -125,3 +125,96 @@ extension Stack: Container {
         return items[i]
     }
 }
+
+// using a protocol in it's associated type's contraints
+protocol SuffixableContainer: Container {
+    associatedtype Suffix: SuffixableContainer where Suffix.Item == Item
+    func suffix(_ size: Int) -> Suffix
+}
+
+extension Stack: SuffixableContainer {
+    func suffix(_ size: Int) -> Stack {
+        var result = Stack()
+        for index in (count-size)..<count {
+            result.appendItem(self[index])
+        }
+        return result
+    }
+}
+
+var stackInts = Stack<Int>()
+stackInts.appendItem(10)
+stackInts.appendItem(20)
+stackInts.appendItem(30)
+let suffix = stackInts.suffix(2)
+print(suffix)
+
+// MARK: - Generic where clauses
+
+func allItemsMatch<C1: Container, C2: Container>(_ someContainer: C1, _ anotherContainer: C2) -> Bool where C1.Item == C2.Item, C1.Item: Equatable {
+    
+    if someContainer.count != anotherContainer.count {
+        return false
+    }
+    
+    for i in 0..<someContainer.count {
+        if someContainer[i] != anotherContainer[i] {
+            return false
+        }
+    }
+    
+    return true
+}
+
+extension Array: Container {
+    mutating func appendItem(_ item: Element) {
+        self.append(item)
+    }
+}
+
+var arrayOfStrings = ["uno", "dos", "tres"]
+if allItemsMatch(stackOfStrings, arrayOfStrings) {
+    print("All items match!")
+} else {
+    print("Not all items match!")
+}
+
+extension Stack where Element: Equatable {
+    func isTop(_ item: Element) -> Bool {
+            guard let topItem = items.last else {
+                return false
+            }
+            return topItem == item
+        }
+}
+
+if stackOfStrings.isTop("tres") {
+    print("Top element is tres")
+} else {
+    print("Top element is something else")
+}
+
+extension Container where Item: Equatable {
+    func startsWith(_ item: Item) -> Bool {
+        return count >= 1 && self[0] == item
+    }
+}
+
+if [9, 9, 42].startsWith(4) {
+    print("Starts withs 42")
+} else {
+    print("Starts with something else")
+}
+
+extension Container where Item == Double {
+    
+    func average() -> Double {
+        var sum = 0.0
+        for index in 0..<count {
+            sum += self[index]
+        }
+        return sum / Double(count)
+    }
+}
+
+print([1260.0, 98.6, 37.0].average())
